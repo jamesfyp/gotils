@@ -23,7 +23,7 @@ func initDB(dsn string) (db *gorm.DB) {
 
 	db, err := gorm.Open(mysqldb, &gorm.Config{
 		Logger: logger.New(
-			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+			log.New(os.Stdout, "", log.LstdFlags), // io writer
 			logger.Config{
 				SlowThreshold: time.Second, // 慢 SQL 阈值
 				LogLevel:      logger.Warn, // Log level
