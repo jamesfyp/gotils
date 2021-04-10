@@ -8,11 +8,7 @@ const (
 	Common     = 0
 	Waring     = 1
 	Emergency  = 2
-	MQueue     = "MESSAGE_QUEUE"
-	wePushTemp = `#### <font color="%s">%s</font> **%s** 
-###### 内容: %s
-###### 发生时间: %s
-###### 剩余错误: %d`
+	MQueueName = "MESSAGE_QUEUE"
 )
 
 type WeMsg struct {
