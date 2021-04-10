@@ -13,12 +13,10 @@ import (
 )
 
 const (
-	Common    = 0
-	Waring    = 1
-	Emergency = 2
-	MQueue    = "MESSAGE_QUEUE"
-
-	wePushUrl  = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=5fa7e1e9-a337-4474-b706-38ae73648fb9"
+	Common     = 0
+	Waring     = 1
+	Emergency  = 2
+	MQueue     = "MESSAGE_QUEUE"
 	wePushTemp = `#### <font color="%s">%s</font> **%s** 
 ###### 内容: %s
 ###### 发生时间: %s
@@ -67,7 +65,7 @@ func In(cli *redis.Client, ctx context.Context, wm *WeMsg) {
 	}
 }
 
-func Push(wm WeMsg, l int64) error {
+func Push(wm WeMsg, l int64, url string) error {
 	var (
 		status string
 		color  string
@@ -90,7 +88,7 @@ func Push(wm WeMsg, l int64) error {
 	msgB, _ := json.Marshal(&pushData)
 
 	cli := &http.Client{}
-	req, _ := http.NewRequest("POST", wePushUrl, bytes.NewBuffer(msgB))
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(msgB))
 	req.Header.Set("Content-Type", "application/json")
 	res, err := cli.Do(req)
 	if err != nil {
