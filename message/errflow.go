@@ -55,11 +55,10 @@ func New(title string, content string, level int) (wm *WeMsg) {
 		Time:    time.Now(),
 		Level:   level,
 	}
-
 }
 
-func In(cli *redis.Client, ctx context.Context, wm WeMsg) {
-	wmStr, _ := json.Marshal(&wm)
+func In(cli *redis.Client, ctx context.Context, wm *WeMsg) {
+	wmStr, _ := json.Marshal(wm)
 	switch wm.Level {
 	case Emergency:
 		cli.RPush(ctx, MQueue, wmStr)
@@ -68,15 +67,17 @@ func In(cli *redis.Client, ctx context.Context, wm WeMsg) {
 	}
 }
 
-func Out(cli *redis.Client, ctx context.Context) (wm WeMsg) {
+func Out(cli *redis.Client, ctx context.Context) (wm WeMsg, err error) {
 
-	wmStr := cli.RPop(ctx, MQueue).Val()
-	json.Unmarshal([]byte(wmStr), &wm)
+	wmStr, err := cli.RPop(ctx, MQueue).Result()
+	if err != nil {
+		return wm, err
+	}
+	err = json.Unmarshal([]byte(wmStr), &wm)
+	if err != nil {
+		return wm, err
+	}
 	return
-}
-
-func L(cli *redis.Client, ctx context.Context) int64 {
-	return cli.LLen(ctx, MQueue).Val()
 }
 
 func Push(wm WeMsg, l int64) error {
