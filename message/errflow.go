@@ -67,19 +67,6 @@ func In(cli *redis.Client, ctx context.Context, wm *WeMsg) {
 	}
 }
 
-func Out(cli *redis.Client, ctx context.Context) (wm WeMsg, err error) {
-
-	wmStr, err := cli.RPop(ctx, MQueue).Result()
-	if err != nil {
-		return wm, err
-	}
-	err = json.Unmarshal([]byte(wmStr), &wm)
-	if err != nil {
-		return wm, err
-	}
-	return
-}
-
 func Push(wm WeMsg, l int64) error {
 	var (
 		status string
