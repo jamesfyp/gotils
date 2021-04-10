@@ -1,14 +1,6 @@
 package message
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"github.com/go-redis/redis/v8"
-	"io/ioutil"
-	"net/http"
 	"time"
 )
 
@@ -30,78 +22,11 @@ type WeMsg struct {
 	Level   int       `json:"level"`
 }
 
-// -------------------------------------
-
-type PushData struct {
-	MsgType  string   `json:"msgtype"`
-	Markdown Markdown `json:"markdown"`
-}
-
-type Markdown struct {
-	Content string `json:"content"`
-}
-
-type PushRes struct {
-	ErrCode int    `json:"errcode"`
-	ErrMsg  string `json:"errmsg"`
-}
-
 func New(title string, content string, level int) (wm *WeMsg) {
 	return &WeMsg{
 		Title:   title,
 		Content: content,
 		Time:    time.Now(),
 		Level:   level,
-	}
-}
-
-func In(cli *redis.Client, ctx context.Context, wm *WeMsg) {
-	wmStr, _ := json.Marshal(wm)
-	switch wm.Level {
-	case Emergency:
-		cli.RPush(ctx, MQueue, wmStr)
-	default:
-		cli.LPush(ctx, MQueue, wmStr)
-	}
-}
-
-func Push(wm WeMsg, l int64, url string) error {
-	var (
-		status string
-		color  string
-	)
-	switch wm.Level {
-	case Common:
-		color, status = "comment", "通知  "
-		break
-	case Waring:
-		color, status = "info", "提醒  "
-		break
-	case Emergency:
-		color, status = "warning", "需处理"
-		break
-	}
-	var pushData PushData
-	pushData.MsgType = "markdown"
-	pushData.Markdown.Content = fmt.Sprintf(wePushTemp, color, status, wm.Title, wm.Content, wm.Time.Format("2006-01-02 15:04:05"), l)
-
-	msgB, _ := json.Marshal(&pushData)
-
-	cli := &http.Client{}
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(msgB))
-	req.Header.Set("Content-Type", "application/json")
-	res, err := cli.Do(req)
-	if err != nil {
-		return err
-	}
-	body, _ := ioutil.ReadAll(res.Body)
-
-	var pushRes PushRes
-	json.Unmarshal(body, &pushRes)
-
-	if pushRes.ErrCode != 0 || pushRes.ErrMsg != "ok" {
-		return errors.New(fmt.Sprintf("push failed msg: %s, code: %d", pushRes.ErrMsg, pushRes.ErrCode))
-	} else {
-		return nil
 	}
 }
